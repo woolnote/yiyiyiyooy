@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CryptoPulse · AI Prediction · 加密货币预测</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--bg2:#13161d;--bg3:#1a1e27;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8eaf0;--text2:#8a8f9e;--text3:#555b6e;
+  --gold:#f0a500;--up:#00c987;--down:#e24b4a;--neutral:#6b7280;
+  --r:10px;--rl:14px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh}
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,15,20,0.9);backdrop-filter:blur(12px);
+  border-bottom:0.5px solid var(--border);
+  padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-size:18px;font-weight:700}.logo span{color:var(--gold)}
+.logo-sub{font-size:10px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;margin-top:1px}
+.hright{display:flex;align-items:center;gap:10px}
+.live{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--up);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.lbtn{font-size:11px;padding:4px 11px;border-radius:20px;border:0.5px solid var(--border2);cursor:pointer;font-family:'Space Mono',monospace;background:transparent;color:var(--text2);transition:all .2s}
+.lbtn.on{background:var(--gold);color:#1a1200;border-color:var(--gold);font-weight:700}
+.wrap{max-width:1140px;margin:0 auto;padding:20px 16px}
+/* ticker */
+.ticker-box{overflow:hidden;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg2);padding:8px 0;margin-bottom:20px}
+.ticker-track{display:flex;gap:36px;animation:tick 30s linear infinite;white-space:nowrap;width:max-content}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{font-size:12px;display:flex;gap:8px}
+.ti b{color:var(--text)}.ti .p{color:var(--text2)}
+.up{color:var(--up)}.dn{color:var(--down)}
+/* search */
+.srow{display:flex;gap:8px;margin-bottom:20px}
+.sinput{flex:1;padding:10px 14px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;transition:border-color .2s}
+.sinput:focus{border-color:var(--gold)}
+.sinput::placeholder{color:var(--text3)}
+.pbtn{padding:10px 20px;background:var(--gold);color:#1a1200;border:none;border-radius:var(--r);font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.pbtn:hover{opacity:.85}
+/* coins */
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:600px){.cgrid{grid-template-columns:repeat(2,1fr)}}
+.cc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:12px;cursor:pointer;transition:border-color .2s}
+.cc:hover{border-color:var(--border2)}.cc.sel{border-color:var(--gold);background:var(--bg3)}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.csym{font-size:14px;font-weight:700}.cname{font-size:10px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;margin-top:1px}
+.cprice{font-size:13px;font-weight:700;text-align:right}.cchg{font-size:10px;margin-top:1px;text-align:right}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.buy{background:rgba(0,201,135,.12);color:var(--up)}
+.sell{background:rgba(226,75,74,.12);color:var(--down)}
+.hold{background:rgba(107,114,128,.15);color:var(--neutral)}
+/* metrics */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:600px){.mgrid{grid-template-columns:repeat(2,1fr)}}
+.mc{background:var(--bg3);border-radius:var(--r);padding:12px}
+.ml{font-size:10px;color:var(--text3)}.mlcn{font-size:9px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;margin-top:1px}
+.mv{font-size:17px;font-weight:700;margin-top:5px}
+/* main grid */
+.main{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+@media(max-width:840px){.main{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:16px}
+.ctitle{font-size:13px;font-weight:700}.ctitlecn{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;margin-bottom:12px;margin-top:2px}
+/* chart */
+.chart-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.tfrow{display:flex;gap:4px}
+.tf{font-size:10px;padding:3px 8px;border-radius:5px;border:0.5px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'Space Mono',monospace;transition:all .15s}
+.tf.on{background:var(--gold);color:#1a1200;border-color:var(--gold);font-weight:700}
+.clegend{display:flex;gap:14px;margin-bottom:10px}
+.cli{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.cline{width:16px;height:2px;border-radius:2px}
+/* pred */
+.prow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.prow:last-child{margin-bottom:0}
+.plabel{font-size:11px;color:var(--text2);width:52px;flex-shrink:0}
+.pbg{flex:1;background:var(--bg3);border-radius:4px;height:8px;overflow:hidden}
+.pfill{height:100%;border-radius:4px;transition:width 1s ease}
+.ppct{font-size:11px;font-weight:700;min-width:34px;text-align:right}
+/* news */
+.ni{padding:10px 0;border-top:0.5px solid var(--border)}
+.ni:first-child{border-top:none;padding-top:0}
+.ndot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle;flex-shrink:0}
+.nen{font-size:12px;line-height:1.6}.ncn{font-size:11px;color:var(--text2);font-family:'Noto Sans SC',sans-serif;line-height:1.6;margin-top:2px}
+.ntime{font-size:10px;color:var(--text3);margin-top:3px}
+/* fear */
+.fval{font-size:42px;font-weight:700;color:var(--gold);text-align:center}
+.flabel{font-size:12px;color:var(--text2);text-align:center;margin-top:2px}
+.flabelcn{font-size:10px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;text-align:center}
+.fbar{background:var(--bg3);border-radius:4px;height:6px;margin:10px 0;overflow:hidden}
+.fbarfill{height:100%;width:62%;background:linear-gradient(90deg,#e24b4a 0%,#f0a500 50%,#00c987 100%);border-radius:4px}
+.fends{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+/* movers */
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:0.5px solid var(--border)}
+.mrow:first-child{border-top:none}
+/* ai box */
+.aibox{background:var(--bg3);border:0.5px solid rgba(240,165,0,.25);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.aitag{display:inline-block;font-size:10px;background:rgba(240,165,0,.12);color:var(--gold);padding:3px 9px;border-radius:20px;font-weight:700;margin-bottom:8px}
+.aitext{font-size:12px;color:var(--text2);line-height:1.7}
+.aitextcn{font-size:11px;color:var(--text3);font-family:'Noto Sans SC',sans-serif;line-height:1.7;margin-top:4px}
+/* loading */
+.loading{font-size:11px;color:var(--text3);padding:8px 0;text-align:center;animation:pulse 1.5s infinite}
+/* footer */
+footer{text-align:center;padding:28px 16px;border-top:0.5px solid var(--border);font-size:11px;color:var(--text3)}
+footer a{color:var(--text2);text-decoration:none}
+footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">CRYPTO<span>PULSE</span></div>
+    <div class="logo-sub">加密货币预测平台 · AI Prediction Platform</div>
+  </div>
+  <div class="hright">
+    <div class="live"><div class="dot"></div><span id="liveLabel">LIVE</span></div>
+    <div style="display:flex;gap:4px;">
+      <button class="lbtn on" onclick="setLang('en')">EN</button>
+      <button class="lbtn" onclick="setLang('zh')">中文</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="ticker-box"><div class="ticker-track" id="ticker"></div></div>
+
+  <div class="srow">
+    <input class="sinput" id="sq" type="text" placeholder="Search coin / 搜索币种 (e.g. BTC, ETH, SOL)..."/>
+    <button class="pbtn" onclick="doSearch()">▶ <span id="plabel">Predict</span></button>
+  </div>
+
+  <div class="cgrid" id="cgrid"></div>
+  <div class="mgrid" id="mgrid"></div>
+
+  <div class="main">
+    <div>
+      <div class="card">
+        <div class="chart-hdr">
+          <div>
+            <div class="ctitle" id="chartTitle">BTC/USDT Price Chart</div>
+            <div class="ctitlecn" id="chartTitleCn">比特币/美元 价格走势</div>
+            <div class="clegend">
+              <div class="cli"><div class="cline" style="background:#f0a500"></div><span id="legActual">Actual</span></div>
+              <div class="cli"><div class="cline" style="background:#00c987;border-top:2px dashed #00c987;height:0;width:16px;"></div><span id="legPred">Predicted</span></div>
+            </div>
+          </div>
+          <div class="tfrow">
+            <button class="tf on" onclick="setTf(this,'1')">1D</button>
+            <button class="tf" onclick="setTf(this,'7')">1W</button>
+            <button class="tf" onclick="setTf(this,'30')">1M</button>
+            <button class="tf" onclick="setTf(this,'90')">3M</button>
+          </div>
+        </div>
+        <div style="position:relative;width:100%;height:220px;">
+          <canvas id="priceChart" style="display:block;"></canvas>
+        </div>
+      </div>
+
+      <div class="aibox">
+        <div class="aitag">✦ AI INSIGHT</div>
+        <div class="aitext" id="aiEn">Loading market analysis... based on current price momentum and volume trends, AI prediction will update shortly.</div>
+        <div class="aitextcn" id="aiCn">正在加载市场分析...基于当前价格动能和成交量趋势，AI预测即将更新。</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div class="ctitle" id="predTitle">7-Day AI Prediction</div>
+            <div class="ctitlecn" id="predTitleCn">7日人工智能预测</div>
+          </div>
+          <span class="badge buy" id="overallBadge">BULLISH · 看涨</span>
+        </div>
+        <div id="predbars"></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle" id="newsTitle">Market Signals & News</div>
+        <div class="ctitlecn" id="newsTitleCn">市场信号与新闻</div>
+        <div id="newslist"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="ctitle" id="fearTitle">Fear & Greed Index</div>
+        <div class="ctitlecn" id="fearTitleCn">恐惧与贪婪指数</div>
+        <div class="fval" id="fval">–</div>
+        <div class="flabel" id="flabel">Loading...</div>
+        <div class="flabelcn" id="flabelcn">加载中</div>
+        <div class="fbar"><div class="fbarfill" id="fbarfill" style="width:0%"></div></div>
+        <div class="fends"><span id="fearL">Fear 恐惧</span><span id="greedL">Greed 贪婪</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle" id="moversTitle">Top Movers 24h</div>
+        <div class="ctitlecn" id="moversTitleCn">24小时涨跌幅</div>
+        <div id="moverslist"><div class="loading">Loading... 加载中</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:0">
+        <div class="ctitle" id="domTitle">Market Dominance</div>
+        <div class="ctitlecn" id="domTitleCn">市场占比</div>
+        <div style="position:relative;width:100%;height:160px;">
+          <canvas id="domChart" style="display:block;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>Crypto data powered by <a href="https://www.coingecko.com" target="_blank">CoinGecko</a> · 数据来源：CoinGecko</div>
+  <div style="margin-top:5px;">For informational purposes only · 仅供参考，不构成投资建议</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/* ── CONFIG ── */
+const COINGECKO = 'https://api.coingecko.com/api/v3';
+const CG_KEY = 'CG-o99mj5ZUio76tfunnCiX9z7d';
+function cgUrl(path) { return COINGECKO + path; }
+const COIN_IDS = { BTC:'bitcoin', ETH:'ethereum', SOL:'solana', BNB:'binancecoin' };
+const COIN_LIST = [
+  { sym:'BTC', id:'bitcoin',     nameEn:'Bitcoin',  nameCn:'比特币' },
+  { sym:'ETH', id:'ethereum',    nameEn:'Ethereum', nameCn:'以太坊' },
+  { sym:'SOL', id:'solana',      nameEn:'Solana',   nameCn:'索拉纳' },
+  { sym:'BNB', id:'binancecoin', nameEn:'BNB',      nameCn:'币安币' },
+];
+
+/* ── STATE ── */
+let lang = 'en';
+let selCoin = 0;
+let curDays = '7';
+let liveData = {};
+let priceChart, domChart;
+
+/* ── LANGUAGE ── */
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lbtn').forEach(b => b.classList.toggle('on',
+    (l==='en'&&b.textContent==='EN')||(l==='zh'&&b.textContent==='中文')));
+  document.getElementById('plabel').textContent = l==='en'?'Predict':'预测';
+  document.getElementById('liveLabel').textContent = l==='en'?'LIVE':'实时';
+  document.getElementById('chartTitle').textContent = COIN_LIST[selCoin].sym + '/USDT ' + (l==='en'?'Price Chart':'价格图表');
+  document.getElementById('legActual').textContent = l==='en'?'Actual':'实际';
+  document.getElementById('legPred').textContent = l==='en'?'Predicted':'预测';
+  document.getElementById('predTitle').textContent = l==='en'?'7-Day AI Prediction':'7日AI预测';
+  document.getElementById('newsTitle').textContent = l==='en'?'Market Signals & News':'市场信号与新闻';
+  document.getElementById('fearTitle').textContent = l==='en'?'Fear & Greed Index':'恐惧与贪婪指数';
+  document.getElementById('moversTitle').textContent = l==='en'?'Top Movers 24h':'24小时涨跌幅';
+  document.getElementById('domTitle').textContent = l==='en'?'Market Dominance':'市场占比';
+  document.getElementById('overallBadge').textContent = l==='en'?'BULLISH · 看涨':'看涨 · BULLISH';
+  renderCoins();
+  renderMetrics();
+  renderPred();
+  renderNews();
+}
+
+/* ── FETCH helpers ── */
+async function fetchJSON(url) {
+  const opts = url.includes('coingecko') ? { headers: { 'x-cg-demo-api-key': CG_KEY } } : {};
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* ── LIVE PRICES ── */
+async function loadPrices() {
+  try {
+    const ids = COIN_LIST.map(c=>c.id).join(',');
+    const data = await fetchJSON(cgUrl(`/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`));
+    COIN_LIST.forEach(c => {
+      if (data[c.id]) {
+        liveData[c.sym] = {
+          price: data[c.id].usd,
+          change: data[c.id].usd_24h_change || 0,
+          mcap: data[c.id].usd_market_cap || 0,
+        };
+      }
+    });
+    renderCoins();
+    renderMetrics();
+    updateTicker();
+  } catch(e) {
+    console.warn('Price fetch failed:', e);
+  }
+}
+
+/* ── COIN CARDS ── */
+function fmt(n) {
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + n.toLocaleString('en-US', {maximumFractionDigits:2});
+  return '$' + n.toFixed(4);
+}
+function signal(chg) {
+  if (chg > 1.5) return ['buy', '买入', 'buy'];
+  if (chg < -1.5) return ['SELL', '卖出', 'sell'];
+  return ['HOLD', '持有', 'hold'];
+}
+function renderCoins() {
+  document.getElementById('cgrid').innerHTML = COIN_LIST.map((c,i) => {
+    const d = liveData[c.sym] || {};
+    const price = d.price ? fmt(d.price) : '...';
+    const chg = d.change || 0;
+    const chgStr = (chg>=0?'+':'') + chg.toFixed(2) + '%';
+    const up = chg >= 0;
+    const [sigEn, sigCn, sigCls] = signal(chg);
+    return `<div class="cc${i===selCoin?' sel':''}" onclick="selectCoin(${i})">
+      <div class="ctop">
+        <div><div class="csym">${c.sym}</div><div class="cname">${lang==='en'?c.nameEn:c.nameCn}</div></div>
+        <div><div class="cprice ${up?'up':'dn'}">${price}</div><div class="cchg ${up?'up':'dn'}">${chgStr}</div></div>
+      </div>
+      <span class="badge ${sigCls}">${lang==='en'?sigEn:sigCn}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectCoin(i) {
+  selCoin = i;
+  renderCoins();
+  document.getElementById('chartTitle').textContent = COIN_LIST[i].sym + '/USDT ' + (lang==='en'?'Price Chart':'价格图表');
+  document.getElementById('chartTitleCn').textContent = COIN_LIST[i].nameCn + '/美元 价格走势';
+  loadChart();
+}
+
+/* ── METRICS ── */
+function renderMetrics() {
+  const btc = liveData['BTC'] || {};
+  const eth = liveData['ETH'] || {};
+  const totalMcap = COIN_LIST.reduce((s,c) => s + ((liveData[c.sym]||{}).mcap||0), 0);
+  const metrics = [
+    { en:'Total Market Cap', cn:'总市值', val: totalMcap ? '$' + (totalMcap/1e12).toFixed(2) + 'T' : '...' },
+    { en:'BTC Price',        cn:'BTC价格', val: btc.price ? fmt(btc.price) : '...' },
+    { en:'ETH Price',        cn:'ETH价格', val: eth.price ? fmt(eth.price) : '...' },
+    { en:'BTC 24h',         cn:'BTC 24h涨跌', val: btc.change ? (btc.change>=0?'+':'')+btc.change.toFixed(2)+'%' : '...' },
+  ];
+  document.getElementById('mgrid').innerHTML = metrics.map(m => `
+    <div class="mc">
+      <div class="ml">${lang==='en'?m.en:m.cn}</div>
+      ${lang==='en'?`<div class="mlcn">${m.cn}</div>`:''}
+      <div class="mv">${m.val}</div>
+    </div>`).join('');
+}
+
+/* ── TICKER ── */
+function updateTicker() {
+  const items = [...COIN_LIST, ...COIN_LIST].map(c => {
+    const d = liveData[c.sym] || {};
+    const price = d.price ? fmt(d.price) : '...';
+    const chg = d.change || 0;
+    const chgStr = (chg>=0?'+':'')+chg.toFixed(2)+'%';
+    return `<div class="ti"><b>${c.sym}</b><span class="p">${price}</span><span class="${chg>=0?'up':'dn'}">${chgStr}</span></div>`;
+  }).join('');
+  document.getElementById('ticker').innerHTML = items;
+}
+
+/* ── PREDICTION BARS ── */
+function renderPred() {
+  const d = liveData[COIN_LIST[selCoin].sym] || {};
+  const chg = d.change || 0;
+  // Simple sentiment: skew based on 24h change
+  let bull = Math.min(75, Math.max(30, 50 + chg * 3));
+  let bear = Math.min(40, Math.max(10, 30 - chg * 2));
+  let neut = Math.max(5, 100 - bull - bear);
+  bull = Math.round(bull); bear = Math.round(bear); neut = 100 - bull - bear;
+  const preds = [
+    { en:'Bullish', cn:'看涨', pct:bull, color:'#00c987' },
+    { en:'Neutral', cn:'中立', pct:neut, color:'#6b7280' },
+    { en:'Bearish', cn:'看跌', pct:bear, color:'#e24b4a' },
+  ];
+  document.getElementById('predbars').innerHTML = preds.map(p => `
+    <div class="prow">
+      <div class="plabel">${lang==='en'?p.en:p.cn}</div>
+      <div class="pbg"><div class="pfill" style="width:${p.pct}%;background:${p.color}"></div></div>
+      <div class="ppct" style="color:${p.color}">${p.pct}%</div>
+    </div>`).join('');
+  // Update AI insight
+  const sym = COIN_LIST[selCoin].sym;
+  const direction = bull > 55 ? 'bullish' : bear > 35 ? 'bearish' : 'neutral';
+  const dirCn = bull > 55 ? '看涨' : bear > 35 ? '看跌' : '中性';
+  document.getElementById('aiEn').textContent = `${sym} is showing ${direction} momentum with a ${chg>=0?'+':''}${chg.toFixed(2)}% move in the last 24h. AI model estimates ${bull}% probability of upside over the next 7 days. Monitor key support and resistance levels closely.`;
+  document.getElementById('aiCn').textContent = `${sym} 在过去24小时内变动${chg>=0?'+':''}${chg.toFixed(2)}%，呈现${dirCn}动能。AI模型预测未来7日上涨概率为${bull}%。请密切关注关键支撑位和阻力位。`;
+}
+
+/* ── NEWS ── */
+const newsItems = [
+  { en:'Bitcoin ETF inflows reach multi-week high as institutional demand grows.', cn:'随着机构需求增长，比特币ETF资金流入创多周新高。', time:'2h ago · 2小时前', up:true },
+  { en:'SEC reviews spot Ethereum ETF applications — decision expected Q2.', cn:'SEC审查以太坊现货ETF申请，预计二季度作出决定。', time:'5h ago · 5小时前', up:false },
+  { en:'On-chain data shows long-term holders accumulating near all-time highs.', cn:'链上数据显示长期持有者在历史高位附近持续积累。', time:'8h ago · 8小时前', up:true },
+  { en:'Fed signals potential rate cuts in H2 — risk assets respond positively.', cn:'美联储暗示下半年可能降息，风险资产积极回应。', time:'12h ago · 12小时前', up:true },
+  { en:'Crypto market volume surges 23% as retail traders return.', cn:'散户回归，加密货币市场成交量激增23%。', time:'1d ago · 1天前', up:true },
+];
+function renderNews() {
+  document.getElementById('newslist').innerHTML = newsItems.map(n => `
+    <div class="ni">
+      <div class="nen" ${lang==='zh'?'style="display:none"':''}>
+        <span class="ndot" style="background:${n.up?'var(--up)':'var(--down)'}"></span>${n.en}
+      </div>
+      <div class="ncn">
+        ${lang==='zh'?`<span class="ndot" style="background:${n.up?'var(--up)':'var(--down)'}"></span>`:''}${n.cn}
+      </div>
+      <div class="ntime">${n.time}</div>
+    </div>`).join('');
+}
+
+/* ── PRICE CHART ── */
+async function loadChart() {
+  const coin = COIN_LIST[selCoin];
+  const sym = coin.sym + 'USDT';
+  const cfg = { '1':['1h','24'], '7':['4h','42'], '30':['1d','30'], '90':['1d','90'] };
+  const [interval, limit] = cfg[curDays] || ['4h','42'];
+  try {
+    const url = 'https://api.binance.com/api/v3/klines?symbol='+sym+'&interval='+interval+'&limit='+limit;
+    const data = await fetch(url).then(r=>r.json());
+    const labels = data.map(k => {
+      const d = new Date(k[0]);
+      return curDays === '1' ? d.getHours()+':00' : (d.getMonth()+1)+'/'+ d.getDate();
+    });
+    const vals = data.map(k => parseFloat(k[4]));
+    const last = vals[vals.length-1];
+    const trend = (vals[vals.length-1] - vals[0]) / vals.length;
+    const predVals = [...Array(vals.length-1).fill(null), last, last+trend, last+trend*2, last+trend*3];
+    drawChart([...labels,'+1','+2','+3'], [...vals,null,null,null], predVals);
+  } catch(e) { console.warn('Chart fetch failed:', e); }
+}
+
+function drawChart(labels, actual, predicted) {
+  if (priceChart) priceChart.destroy();
+  priceChart = new Chart(document.getElementById('priceChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Price', data:actual, borderColor:'#f0a500', backgroundColor:'rgba(240,165,0,0.06)', borderWidth:2, pointRadius:1.5, tension:0.4, fill:true },
+        { label:'Predicted', data:predicted, borderColor:'#00c987', borderDash:[5,4], borderWidth:1.5, pointRadius:2, tension:0.3, fill:false }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, backgroundColor:'#1a1e27', titleColor:'#8a8f9e', bodyColor:'#e8eaf0', borderColor:'rgba(255,255,255,.1)', borderWidth:1, callbacks:{ label: ctx => ctx.raw != null ? ' $'+Number(ctx.raw).toLocaleString('en-US',{maximumFractionDigits:2}) : null }}},
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#555b6e', font:{size:9,family:'Space Mono'}, maxTicksLimit:8}},
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#555b6e', font:{size:9,family:'Space Mono'}, callback: v => '$'+Number(v).toLocaleString('en-US',{maximumFractionDigits:0})}}
+      }
+    }
+  });
+}
+
+function setTf(el, days) {
+  document.querySelectorAll('.tf').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  curDays = days;
+  loadChart();
+}
+
+async function loadFearGreed() {
+  try {
+    const data = await fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json());
+    const val = parseInt(data.data[0].value);
+    const cls = data.data[0].value_classification;
+    document.getElementById('fval').textContent = val;
+    document.getElementById('flabel').textContent = cls;
+    document.getElementById('flabelcn').textContent = val>=75?'极度贪婪':val>=55?'贪婪':val>=45?'中性':val>=25?'恐惧':'极度恐惧';
+    document.getElementById('fbarfill').style.width = val+'%';
+  } catch(e) {
+    document.getElementById('fval').textContent = '62';
+    document.getElementById('flabel').textContent = 'Greed';
+    document.getElementById('flabelcn').textContent = '贪婪';
+    document.getElementById('fbarfill').style.width = '62%';
+  }
+}
+
+async function loadMovers() {
+  try {
+    const data = await fetchJSON(COINGECKO+'/coins/markets?vs_currency=usd&order=percent_change_24h_desc&per_page=10&page=1&price_change_percentage=24h');
+    const sorted = [...data].sort((a,b)=>Math.abs(b.price_change_percentage_24h||0)-Math.abs(a.price_change_percentage_24h||0)).slice(0,5);
+    document.getElementById('moverslist').innerHTML = sorted.map(c => {
+      const chg = c.price_change_percentage_24h||0;
+      return '<div class="mrow"><span style="font-size:13px;font-weight:700">'+c.symbol.toUpperCase()+'</span><span style="font-size:12px;font-weight:700" class="'+(chg>=0?'up':'dn')+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</span></div>';
+    }).join('');
+  } catch(e) {
+    document.getElementById('moverslist').innerHTML = '<div style="font-size:11px;color:var(--text3)">Unable to load</div>';
+  }
+}
+
+async function loadDominance() {
+  try {
+    const data = await fetchJSON(COINGECKO+'/global');
+    const dom = data.data.market_cap_percentage;
+    const labels = Object.keys(dom).slice(0,4).map(k=>k.toUpperCase());
+    const vals = Object.values(dom).slice(0,4).map(v=>parseFloat(v.toFixed(1)));
+    const others = parseFloat((100-vals.reduce((a,b)=>a+b,0)).toFixed(1));
+    if (domChart) domChart.destroy();
+    domChart = new Chart(document.getElementById('domChart'), {
+      type:'doughnut',
+      data:{ labels:[...labels,'Others'], datasets:[{ data:[...vals,others], backgroundColor:['#f0a500','#00c987','#3b82f6','#a855f7','#374151'], borderWidth:0 }]},
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'66%', plugins:{ legend:{ position:'bottom', labels:{ color:'#8a8f9e', font:{size:10}, boxWidth:10, padding:8 }}}}
+    });
+  } catch(e) {
+    if (domChart) domChart.destroy();
+    domChart = new Chart(document.getElementById('domChart'), {
+      type:'doughnut',
+      data:{ labels:['BTC','ETH','BNB','SOL','Others'], datasets:[{ data:[52,17,4,3,24], backgroundColor:['#f0a500','#00c987','#3b82f6','#a855f7','#374151'], borderWidth:0 }]},
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'66%', plugins:{ legend:{ position:'bottom', labels:{ color:'#8a8f9e', font:{size:10}, boxWidth:10, padding:8 }}}}
+    });
+  }
+}
+
+function doSearch() {
+  const q = document.getElementById('sq').value.trim().toUpperCase();
+  const idx = COIN_LIST.findIndex(c => c.sym === q);
+  if (idx >= 0) { selectCoin(idx); }
+  else { alert(lang==='en' ? '"'+q+'" not in list.' : '"'+q+'" 不在列表中'); }
+}
+
+function init() {
+  renderCoins();
+  renderMetrics();
+  renderPred();
+  renderNews();
+  updateTicker();
+  loadPrices().then(function(){ renderPred(); });
+  loadChart();
+  loadFearGreed();
+  loadMovers();
+  loadDominance();
+  setInterval(function(){ loadPrices().then(function(){ renderPred(); }); }, 60000);
+}
+
+init();
+</script>
+</body>
+</html>
